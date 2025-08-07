@@ -3,7 +3,7 @@
 const reportsContainer = document.getElementById("reportsContainer");
 const logoutBtn = document.getElementById("logoutBtn");
 
-const API_BASE = "https://exam-wsta.onrender.com";
+const API_BASE = " https://exam-1-jmoj.onrender.com";
 
 // Load all verified reports
 async function loadReports() {

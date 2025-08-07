@@ -4,7 +4,7 @@ const reportsFeed = document.getElementById("reportsFeed");
 const searchInput = document.getElementById("searchInput");
 const tagFilter = document.getElementById("tagFilter");
 
-const API_BASE = "https://exam-wsta.onrender.com/api/reports";
+const API_BASE = " https://exam-1-jmoj.onrender.com/api/reports";
 
 window.addEventListener("DOMContentLoaded", () => {
   // Restore filters from localStorage
@@ -84,7 +84,7 @@ function renderReports(reports) {
       <p>${r.description}</p>
       ${
         r.media
-          ? `<img src="https://exam-wsta.onrender.com/uploads/${r.media}" alt="Proof" loading="lazy"/>`
+          ? `<img src=" https://exam-1-jmoj.onrender.com/uploads/${r.media}" alt="Proof" loading="lazy"/>`
           : ""
       }
       ${

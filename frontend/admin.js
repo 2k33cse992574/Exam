@@ -10,7 +10,7 @@ logoutBtn.addEventListener("click", () => {
 
 async function fetchUnverifiedReports() {
   try {
-    const res = await fetch("https://exam-wsta.onrender.com/api/reports/unverified", {
+    const res = await fetch(" https://exam-1-jmoj.onrender.com/api/reports/unverified", {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
       },
@@ -44,7 +44,7 @@ function displayReports(reports) {
       <h3>${report.examName}</h3>
       <p><strong>Center:</strong> ${report.centerName}</p>
       <p>${report.description}</p>
-      ${report.media ? `<img src="https://exam-wsta.onrender.com/uploads/${report.media}" alt="Evidence" width="100">` : ""}
+      ${report.media ? `<img src=" https://exam-1-jmoj.onrender.com/uploads/${report.media}" alt="Evidence" width="100">` : ""}
       <p><strong>Submitted by:</strong> ${report.ip}</p>
       <button class="verifyBtn" data-id="${report._id}">✅ Verify</button>
       <button class="rejectBtn" data-id="${report._id}">❌ Reject</button>
@@ -74,7 +74,7 @@ function attachActionListeners() {
 
 async function verifyReport(id) {
   try {
-    const res = await fetch(`https://exam-wsta.onrender.com/api/reports/verify/${id}`, {
+    const res = await fetch(` https://exam-1-jmoj.onrender.com/api/reports/verify/${id}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
@@ -93,7 +93,7 @@ async function verifyReport(id) {
 
 async function rejectReport(id) {
   try {
-    const res = await fetch(`https://exam-wsta.onrender.com/api/reports/${id}`, {
+    const res = await fetch(` https://exam-1-jmoj.onrender.com/api/reports/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
