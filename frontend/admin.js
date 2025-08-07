@@ -1,194 +1,151 @@
-// 🔐 Admin access check
-if (localStorage.getItem("isAdmin") !== "true") {
-  alert("🚫 Unauthorized. Please log in as admin.");
-  window.location.href = "login.html";
+const BACKEND_URL = "https://eduguard-backend.onrender.com"; // 🔁 Replace with your actual backend URL
+
+async function fetchReports() {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/reports`);
+    if (!res.ok) throw new Error("Network response was not ok");
+
+    const data = await res.json();
+    displayReports(data);
+    updateStats(data);
+  } catch (error) {
+    document.getElementById("adminContainer").innerText =
+      "❌ Failed to load reports";
+    console.error("Error fetching reports:", error.message);
+  }
 }
 
-const container = document.getElementById("adminContainer");
-const statsBox = document.getElementById("adminStats");
-let allReports = [];
-
-// 🚀 Fetch all reports from backend
-function fetchReports() {
-  fetch("https://exam-wsta.onrender.com/api/reports")
-    .then((res) => res.json())
-    .then((data) => {
-      allReports = data;
-      renderStats(data);
-      renderReports(data);
-    })
-    .catch((err) => {
-      container.innerHTML = "❌ Failed to load reports.";
-      statsBox.innerHTML = "";
-    });
-}
-
-// 📊 Render stats box
-function renderStats(data) {
-  const total = data.length;
-  const verified = data.filter(r => r.isVerified).length;
-  const pending = total - verified;
-
-  statsBox.innerHTML = `
-    <div><strong>📊 Total Reports:</strong> ${total}</div>
-    <div><strong>✅ Verified:</strong> ${verified}</div>
-    <div><strong>❌ Pending:</strong> ${pending}</div>
-    <hr/>
-  `;
-}
-
-// 🧾 Render all reports
-function renderReports(data) {
+function displayReports(reports) {
+  const container = document.getElementById("adminContainer");
   container.innerHTML = "";
 
-  if (data.length === 0) {
-    container.innerHTML = "No reports found.";
-    return;
-  }
-
-  data.forEach((report) => {
+  reports.forEach((report) => {
     const div = document.createElement("div");
-    div.className = "report" + (report.isVerified ? " verified" : "");
+    div.className = `report ${report.isVerified ? "verified" : ""}`;
 
     div.innerHTML = `
-      <input type="checkbox" class="reportCheckbox" value="${report._id}" />
-      <h3>${report.examName} — ${report.centerName}</h3>
+      <input type="checkbox" data-id="${report._id}" />
+      <strong>${report.examName}</strong> — ${report.centerName}
       <p>${report.description}</p>
-      <small>🕒 ${new Date(report.timestamp).toLocaleString()}</small><br/>
-      ${renderMedia(report.media)}<br/>
-      <strong>Status:</strong> ${report.isVerified ? "✅ Verified" : "❌ Not Verified"}
-      ${!report.isVerified ? `<br/><button onclick="verifyReport('${report._id}')">Verify ✅</button>` : ""}
-      <br/><button onclick="deleteReport('${report._id}')">🗑️ Delete</button>
+      ${report.media ? getMediaTag(report.media) : ""}
+      <div>🕒 ${new Date(report.timestamp).toLocaleString()}</div>
+      <div>📍 IP: ${report.ip}</div>
+      <div>
+        <button onclick="verifyReport('${report._id}')">✅ Verify</button>
+        <button onclick="deleteReport('${report._id}')">🗑️ Delete</button>
+      </div>
     `;
 
     container.appendChild(div);
   });
 }
 
-// 📷 Render media (image/video/other)
-function renderMedia(fileName) {
-  if (!fileName) return "";
-  const ext = fileName.split(".").pop().toLowerCase();
-  const url = `https://exam-wsta.onrender.com/uploads/${fileName}`;
+function getMediaTag(media) {
+  const ext = media.split(".").pop().toLowerCase();
+  const mediaURL = `${BACKEND_URL}/uploads/${media}`;
+  return ext === "mp4"
+    ? `<video controls src="${mediaURL}"></video>`
+    : `<img src="${mediaURL}" alt="Uploaded media" />`;
+}
 
-  if (["jpg", "jpeg", "png"].includes(ext)) {
-    return `<img src="${url}" alt="Media" />`;
-  } else if (["mp4", "mov", "avi"].includes(ext)) {
-    return `<video src="${url}" controls></video>`;
-  } else {
-    return `<a href="${url}" target="_blank">View media</a>`;
+async function verifyReport(id) {
+  await fetch(`${BACKEND_URL}/api/reports/${id}/verify`, { method: "PUT" });
+  fetchReports();
+}
+
+async function deleteReport(id) {
+  await fetch(`${BACKEND_URL}/api/reports/${id}`, { method: "DELETE" });
+  fetchReports();
+}
+
+async function verifySelectedReports() {
+  const selected = document.querySelectorAll(
+    "#adminContainer input[type='checkbox']:checked"
+  );
+  for (const box of selected) {
+    await fetch(`${BACKEND_URL}/api/reports/${box.dataset.id}/verify`, {
+      method: "PUT",
+    });
   }
+  fetchReports();
 }
 
-// ✅ Verify a single report
-function verifyReport(id) {
-  if (!confirm("Verify this report?")) return;
-
-  fetch(`https://exam-wsta.onrender.com/api/reports/verify/${id}`, { method: "PUT" })
-    .then(() => fetchReports())
-    .catch(() => alert("❌ Failed to verify."));
+async function deleteSelectedReports() {
+  const selected = document.querySelectorAll(
+    "#adminContainer input[type='checkbox']:checked"
+  );
+  for (const box of selected) {
+    await fetch(`${BACKEND_URL}/api/reports/${box.dataset.id}`, {
+      method: "DELETE",
+    });
+  }
+  fetchReports();
 }
 
-// ✅ Bulk verify
-function verifySelectedReports() {
-  const ids = [...document.querySelectorAll(".reportCheckbox:checked")].map(cb => cb.value);
-  if (ids.length === 0) return alert("Select reports to verify.");
-
-  ids.forEach(id => verifyReport(id));
+function updateStats(reports) {
+  const total = reports.length;
+  const verified = reports.filter((r) => r.isVerified).length;
+  const pending = total - verified;
+  document.getElementById(
+    "adminStats"
+  ).innerText = `📋 Total: ${total} | ✅ Verified: ${verified} | ❌ Pending: ${pending}`;
 }
 
-// 🗑️ Delete a single report
-function deleteReport(id) {
-  if (!confirm("Are you sure to delete this report?")) return;
-
-  fetch(`https://exam-wsta.onrender.com/api/reports/${id}`, { method: "DELETE" })
-    .then(() => fetchReports())
-    .catch(() => alert("❌ Failed to delete."));
-}
-
-// 🗑️ Bulk delete
-function deleteSelectedReports() {
-  const ids = [...document.querySelectorAll(".reportCheckbox:checked")].map(cb => cb.value);
-  if (ids.length === 0) return alert("Select reports to delete.");
-  if (!confirm("Are you sure to delete selected reports?")) return;
-
-  ids.forEach(id => deleteReport(id));
-}
-
-// 🔍 Search function
-function handleSearch(query) {
-  const q = query.trim().toLowerCase();
-  const filtered = allReports.filter((report) => {
-    return (
-      report.examName.toLowerCase().includes(q) ||
-      report.centerName.toLowerCase().includes(q)
-    );
+function filterReports(status) {
+  const allReports = document.querySelectorAll(".report");
+  allReports.forEach((r) => {
+    const isVerified = r.classList.contains("verified");
+    r.style.display =
+      status === "all" ||
+      (status === "verified" && isVerified) ||
+      (status === "pending" && !isVerified)
+        ? "block"
+        : "none";
   });
-  renderReports(filtered);
 }
 
-// 🔘 Filter (verified, pending, all)
-function filterReports(type) {
-  if (type === "verified") {
-    renderReports(allReports.filter(r => r.isVerified));
-  } else if (type === "pending") {
-    renderReports(allReports.filter(r => !r.isVerified));
-  } else {
-    renderReports(allReports);
-  }
+function handleSearch(query) {
+  const lower = query.toLowerCase();
+  document.querySelectorAll(".report").forEach((r) => {
+    r.style.display = r.innerText.toLowerCase().includes(lower)
+      ? "block"
+      : "none";
+  });
 }
 
-// 📄 Export PDF
-function downloadPDF() {
+function logout() {
+  localStorage.removeItem("admin-auth");
+  location.href = "/admin-login.html";
+}
+
+function downloadCSV() {
+  const rows = [["Exam", "Center", "Description", "IP"]];
+  document.querySelectorAll(".report").forEach((r) => {
+    const text = r.innerText.split("\n");
+    rows.push([text[1], text[2], text[3], text[text.length - 2]]);
+  });
+
+  const csv = rows.map((row) => row.join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "reports.csv";
+  a.click();
+}
+
+async function downloadPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-  let y = 20;
+  const reports = document.querySelectorAll(".report");
 
-  doc.setFontSize(16);
-  doc.text("EduGuard Reports", 14, 15);
-  doc.setFontSize(10);
-
-  allReports.forEach((r, i) => {
-    doc.text(`Report #${i + 1}: ${r.examName} - ${r.centerName}`, 10, y);
-    y += 6;
-    doc.text(`Desc: ${r.description}`, 10, y); y += 6;
-    doc.text(`Status: ${r.isVerified ? "✅ Verified" : "❌ Pending"}`, 10, y); y += 6;
-    doc.text(`Time: ${new Date(r.timestamp).toLocaleString()}`, 10, y); y += 10;
-    if (y > 270) { doc.addPage(); y = 20; }
+  reports.forEach((r, i) => {
+    doc.text(r.innerText, 10, 10 + i * 40);
   });
 
-  doc.save("eduguard-reports.pdf");
+  doc.save("reports.pdf");
 }
 
-// 📊 Export CSV
-function downloadCSV() {
-  const headers = ["Exam", "Center", "Description", "Status", "Timestamp"];
-  const rows = allReports.map(r => [
-    `"${r.examName}"`,
-    `"${r.centerName}"`,
-    `"${r.description}"`,
-    r.isVerified ? "Verified" : "Pending",
-    new Date(r.timestamp).toLocaleString()
-  ]);
-
-  let csvContent = "data:text/csv;charset=utf-8,"
-    + headers.join(",") + "\n"
-    + rows.map(e => e.join(",")).join("\n");
-
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", "eduguard-reports.csv");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-// 🚪 Logout
-function logout() {
-  localStorage.removeItem("isAdmin");
-  window.location.href = "login.html";
-}
-
-// ✅ Initial fetch
+// 🔁 Start
 fetchReports();
