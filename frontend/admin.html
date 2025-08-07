@@ -85,6 +85,14 @@
   </style>
 </head>
 <body>
+  <script>
+    // 🔒 Redirect if not logged in as admin
+    if (!localStorage.getItem("admin-auth")) {
+      alert("Admin login required.");
+      window.location.href = "admin-login.html";
+    }
+  </script>
+
   <h2>🛡️ EduGuard Admin Panel</h2>
 
   <!-- 🔍 Search -->
