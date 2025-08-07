@@ -1,12 +1,12 @@
-// backend/middleware/uploadMiddleware.js
+// middleware/uploadMiddleware.js
 
 const multer = require("multer");
 const path = require("path");
 
-// Storage settings
+// Set storage engine
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/");
+    cb(null, path.join(__dirname, "../uploads"));
   },
   filename: function (req, file, cb) {
     const uniqueName = `${Date.now()}-${file.originalname}`;
@@ -14,21 +14,23 @@ const storage = multer.diskStorage({
   },
 });
 
-// File type filter
+// File filter to allow only images and videos
 const fileFilter = (req, file, cb) => {
   const allowedTypes = /jpeg|jpg|png|mp4|mov|avi/;
-  const extname = allowedTypes.test(
-    path.extname(file.originalname).toLowerCase()
-  );
-  const mimetype = allowedTypes.test(file.mimetype);
+  const ext = path.extname(file.originalname).toLowerCase();
+  const mime = file.mimetype;
 
-  if (extname && mimetype) {
-    return cb(null, true);
+  if (allowedTypes.test(ext) && allowedTypes.test(mime)) {
+    cb(null, true);
   } else {
-    cb(new Error("Only image/video files are allowed!"));
+    cb(new Error("❌ Only images and videos are allowed."));
   }
 };
 
-const upload = multer({ storage, fileFilter });
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB
+});
 
 module.exports = upload;

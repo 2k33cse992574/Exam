@@ -1,13 +1,14 @@
-// backend/middleware/rateLimiter.js
+// middleware/rateLimiter.js
 
 const rateLimit = require("express-rate-limit");
 
-const reportLimiter = rateLimit({
-  windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 3, // Max 3 reports per IP per 5 minutes
-  message: "🚫 Too many reports submitted. Please try again after 5 minutes.",
-  standardHeaders: true,
-  legacyHeaders: false,
+const reportRateLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 3, // Limit each IP to 3 report submissions per windowMs
+  message: {
+    success: false,
+    error: "⚠️ Too many reports from this IP. Please try again later.",
+  },
 });
 
-module.exports = reportLimiter;
+module.exports = reportRateLimiter;

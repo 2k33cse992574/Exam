@@ -1,44 +1,100 @@
 // frontend/dashboard.js
 
-const container = document.getElementById("reportsContainer");
+const reportsFeed = document.getElementById("reportsFeed");
+const searchInput = document.getElementById("searchInput");
+const tagFilter = document.getElementById("tagFilter");
 
-fetch("https://exam-wsta.onrender.com/api/reports")
-  .then((res) => res.json())
-  .then((data) => {
-    if (data.length === 0) {
-      container.innerHTML = "No reports found.";
-      return;
+const API_BASE = "https://exam-wsta.onrender.com/api/reports";
+
+window.addEventListener("DOMContentLoaded", () => {
+  // Restore filters from localStorage
+  const savedSearch = localStorage.getItem("search");
+  const savedTag = localStorage.getItem("tag");
+
+  if (savedSearch) searchInput.value = savedSearch;
+  if (savedTag) tagFilter.value = savedTag;
+
+  fetchAndRenderReports();
+});
+
+// Save filters on change
+searchInput.addEventListener("input", () => {
+  localStorage.setItem("search", searchInput.value);
+  fetchAndRenderReports();
+});
+
+tagFilter.addEventListener("change", () => {
+  localStorage.setItem("tag", tagFilter.value);
+  fetchAndRenderReports();
+});
+
+function clearFilters() {
+  searchInput.value = "";
+  tagFilter.value = "";
+  localStorage.removeItem("search");
+  localStorage.removeItem("tag");
+  fetchAndRenderReports();
+}
+
+async function fetchAndRenderReports() {
+  try {
+    const res = await fetch(`${API_BASE}`);
+    const data = await res.json();
+
+    if (!res.ok) throw new Error("Failed to fetch");
+
+    // Apply filters
+    let filtered = data;
+
+    const searchText = searchInput.value.toLowerCase();
+    const selectedTag = tagFilter.value;
+
+    if (searchText) {
+      filtered = filtered.filter(
+        (r) =>
+          r.examName.toLowerCase().includes(searchText) ||
+          r.centerName.toLowerCase().includes(searchText)
+      );
     }
 
-    container.innerHTML = "";
-    data.forEach((report) => {
-      const div = document.createElement("div");
-      div.className = "report";
+    if (selectedTag) {
+      filtered = filtered.filter((r) => r.tags && r.tags.includes(selectedTag));
+    }
 
-      div.innerHTML = `
-        <h3>${report.examName} — ${report.centerName}</h3>
-        <p>${report.description}</p>
-        <small>🕒 ${new Date(report.timestamp).toLocaleString()}</small>
-        ${report.media ? getMediaHTML(report.media) : ""}
-      `;
-
-      container.appendChild(div);
-    });
-  })
-  .catch((err) => {
-    console.error("Failed to load reports:", err);
-    container.innerHTML = "Failed to load reports.";
-  });
-
-function getMediaHTML(filename) {
-  const ext = filename.split(".").pop().toLowerCase();
-  const url = `https://exam-wsta.onrender.com/uploads/${filename}`;
-
-  if (["jpg", "jpeg", "png"].includes(ext)) {
-    return `<img src="${url}" alt="Report media" />`;
-  } else if (["mp4", "mov", "avi"].includes(ext)) {
-    return `<video src="${url}" controls></video>`;
-  } else {
-    return `<a href="${url}" target="_blank">View Media</a>`;
+    renderReports(filtered);
+  } catch (err) {
+    reportsFeed.innerHTML = `<p style="color:red;">❌ Failed to load complaints.</p>`;
+    console.error("Error:", err);
   }
+}
+
+function renderReports(reports) {
+  if (!reports.length) {
+    reportsFeed.innerHTML = `<p>No complaints found.</p>`;
+    return;
+  }
+
+  const list = reports
+    .reverse()
+    .map(
+      (r) => `
+    <div class="report">
+      <h3>${r.examName}</h3>
+      <p><strong>Center:</strong> ${r.centerName}</p>
+      <p>${r.description}</p>
+      ${
+        r.media
+          ? `<img src="https://exam-wsta.onrender.com/uploads/${r.media}" alt="Proof" loading="lazy"/>`
+          : ""
+      }
+      ${
+        r.verified
+          ? `<p class="verified">✅ Verified by Admin</p>`
+          : `<p class="unverified">⚠️ Not yet verified</p>`
+      }
+    </div>`
+    )
+    .join("");
+
+  reportsFeed.innerHTML = list;
 }

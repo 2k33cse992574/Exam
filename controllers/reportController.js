@@ -1,63 +1,87 @@
-// backend/controllers/reportController.js
+// controllers/reportController.js
 
 const Report = require("../models/Report");
 const sendReportAlert = require("../utils/emailService");
+const path = require("path");
 
-// Submit Report
-exports.submitReport = async (req, res) => {
+// ✅ Submit a new report
+const submitReport = async (req, res) => {
   try {
-    const { examName, centerName, description } = req.body;
+    const { examName, centerName, description, mobile } = req.body;
+    const ip = req.clientIP;
+    const media = req.file ? req.file.filename : null;
 
     const report = new Report({
       examName,
       centerName,
       description,
-      media: req.file ? req.file.filename : null,
-      ip: req.clientIP,
+      mobile,
+      media,
+      ip,
     });
 
     await report.save();
 
-    // Optionally send alert email
-    await sendReportAlert(report);
+    // Send email alert to admin/NGOs/media
+    await sendReportAlert({ examName, centerName, description, media });
 
-    res.status(201).json({ message: "Report submitted", report });
+    res.status(201).json({ message: "✅ Report submitted successfully!" });
   } catch (error) {
-    console.error("Error submitting report:", error.message);
-    res.status(500).json({ error: "Failed to submit report" });
+    console.error("❌ Error submitting report:", error.message);
+    res.status(500).json({ message: "❌ Server Error" });
   }
 };
 
-// Get All Reports
-exports.getAllReports = async (req, res) => {
+// ✅ Get all reports (admin)
+const getReports = async (req, res) => {
   try {
-    const reports = await Report.find().sort({ timestamp: -1 });
+    const reports = await Report.find().sort({ createdAt: -1 });
     res.json(reports);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch reports" });
+    res.status(500).json({ message: "Server Error" });
   }
 };
 
-// Verify Report (admin)
-exports.verifyReport = async (req, res) => {
+// ✅ Get only verified reports (public trending feed)
+const getVerifiedReports = async (req, res) => {
   try {
-    const report = await Report.findByIdAndUpdate(
-      req.params.id,
-      { isVerified: true },
-      { new: true }
-    );
-    res.json(report);
+    const reports = await Report.find({ isVerified: true }).sort({ createdAt: -1 });
+    res.json(reports);
   } catch (error) {
-    res.status(500).json({ error: "Verification failed" });
+    res.status(500).json({ message: "Server Error" });
   }
 };
 
-// Delete Report (admin)
-exports.deleteReport = async (req, res) => {
+// ✅ Verify a report (admin)
+const verifyReport = async (req, res) => {
   try {
-    await Report.findByIdAndDelete(req.params.id);
-    res.json({ message: "Report deleted" });
+    const report = await Report.findById(req.params.id);
+    if (!report) return res.status(404).json({ message: "Report not found" });
+
+    report.isVerified = true;
+    await report.save();
+
+    res.json({ message: "Report verified" });
   } catch (error) {
-    res.status(500).json({ error: "Deletion failed" });
+    res.status(500).json({ message: "Server Error" });
   }
+};
+
+// ✅ Get reports by mobile number
+const getReportByMobile = async (req, res) => {
+  try {
+    const mobile = req.params.mobile;
+    const reports = await Report.find({ mobile }).sort({ createdAt: -1 });
+    res.json(reports);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+module.exports = {
+  submitReport,
+  getReports,
+  getVerifiedReports,
+  verifyReport,
+  getReportByMobile,
 };

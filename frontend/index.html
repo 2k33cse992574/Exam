@@ -3,38 +3,47 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ExamGuard - Report Form</title>
-  <style>
-    body {
-      font-family: Arial;
-      margin: 40px;
-    }
-    input, textarea, button {
-      display: block;
-      margin: 10px 0;
-      width: 100%;
-      padding: 8px;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduGuard - Report Exam Issues</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>📢 Report Exam Issue (Anonymous)</h1>
+  <header>
+    <h1>📢 EduGuard</h1>
+    <p>Report Exam Malpractices & Center Issues</p>
+    <nav>
+      <a href="feed.html">🔥 Trending Reports</a>
+      <a href="myreports.html">📋 My Reports</a>
+      <a href="login.html">🛡️ Admin Login</a>
+    </nav>
+  </header>
 
-  <p id="countBar"></p>
-<div id="feedContainer"></div>
-<div id="pagination" style="text-align:center; margin-top: 20px;"></div>
+  <main>
+    <form id="reportForm" enctype="multipart/form-data">
+      <label>Exam Name:
+        <input type="text" name="examName" required />
+      </label>
 
+      <label>Center Name:
+        <input type="text" name="centerName" required />
+      </label>
 
-  <form id="reportForm">
-    <input type="text" name="examName" placeholder="Exam Name (e.g. NEET)" required />
-    <input type="text" name="centerName" placeholder="Exam Center Name" required />
-    <textarea name="description" placeholder="Describe the issue..." rows="5" required></textarea>
-    <input type="file" name="media" accept="image/*,video/*" />
-    <button type="submit">Submit Report</button>
-  </form>
+      <label>Description:
+        <textarea name="description" required></textarea>
+      </label>
 
-  <p id="message"></p>
+      <label>Optional Media (Image/Video):
+        <input type="file" name="media" accept="image/*,video/*" />
+      </label>
+
+      <button type="submit">🚀 Submit Report</button>
+      <p id="message"></p>
+    </form>
+  </main>
+
+  <footer>
+    <p>⚠️ All reports are reviewed before public display. We ensure anonymity.</p>
+  </footer>
 
   <script src="script.js"></script>
 </body>

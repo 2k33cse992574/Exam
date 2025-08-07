@@ -1,5 +1,3 @@
-// backend/utils/emailService.js
-
 const nodemailer = require("nodemailer");
 
 const sendReportAlert = async ({ examName, centerName, description, media }) => {
@@ -20,7 +18,11 @@ const sendReportAlert = async ({ examName, centerName, description, media }) => 
       <p><strong>Exam:</strong> ${examName}</p>
       <p><strong>Center:</strong> ${centerName}</p>
       <p><strong>Description:</strong> ${description}</p>
-      <p><strong>Media:</strong> <a href="http://localhost:5000/uploads/${media}" target="_blank">View File</a></p>
+      ${
+        media
+          ? `<p><strong>Media:</strong> <a href="${process.env.BASE_URL}/uploads/${media}" target="_blank">View File</a></p>`
+          : "<p><strong>Media:</strong> None</p>"
+      }
       <p><em>Submitted via EduGuard</em></p>
     `,
   };

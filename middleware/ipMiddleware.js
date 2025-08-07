@@ -1,7 +1,13 @@
-// backend/middleware/ipMiddleware.js
+// middleware/ipMiddleware.js
 
-module.exports = function getClientIP(req, res, next) {
-  const forwarded = req.headers['x-forwarded-for'];
-  req.clientIP = forwarded ? forwarded.split(',')[0] : req.connection.remoteAddress;
+const getClientIp = (req) => {
+  const forwarded = req.headers["x-forwarded-for"];
+  return forwarded ? forwarded.split(",")[0] : req.connection.remoteAddress;
+};
+
+const ipMiddleware = (req, res, next) => {
+  req.clientIp = getClientIp(req);
   next();
 };
+
+module.exports = ipMiddleware;
