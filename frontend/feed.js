@@ -31,7 +31,7 @@ fetch("https://api.ipify.org?format=json")
 
 // Fetch
 loader.style.display = "block";
-fetch("http://localhost:5000/api/reports")
+fetch("https://exam-wsta.onrender.com")
   .then((res) => res.json())
   .then((data) => {
     loader.style.display = "none";
@@ -180,7 +180,7 @@ function renderPagination() {
 function renderMedia(fileName) {
   if (!fileName) return "";
   const ext = fileName.split(".").pop().toLowerCase();
-  const url = `http://localhost:5000/uploads/${fileName}`;
+  const url = `https://exam-wsta.onrender.com/uploads/${fileName}`;
   if (["jpg", "jpeg", "png"].includes(ext)) return `<img src="${url}" alt="Image" />`;
   if (["mp4", "mov"].includes(ext)) return `<video src="${url}" controls></video>`;
   return `<a href="${url}" target="_blank">View media</a>`;

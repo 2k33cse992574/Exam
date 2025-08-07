@@ -10,7 +10,7 @@ let allReports = [];
 
 // 🚀 Fetch all reports from backend
 function fetchReports() {
-  fetch("http://localhost:5000/api/reports")
+  fetch("https://exam-wsta.onrender.com/api/reports")
     .then((res) => res.json())
     .then((data) => {
       allReports = data;
@@ -69,7 +69,7 @@ function renderReports(data) {
 function renderMedia(fileName) {
   if (!fileName) return "";
   const ext = fileName.split(".").pop().toLowerCase();
-  const url = `http://localhost:5000/uploads/${fileName}`;
+  const url = `https://exam-wsta.onrender.com/uploads/${fileName}`;
 
   if (["jpg", "jpeg", "png"].includes(ext)) {
     return `<img src="${url}" alt="Media" />`;
@@ -84,7 +84,7 @@ function renderMedia(fileName) {
 function verifyReport(id) {
   if (!confirm("Verify this report?")) return;
 
-  fetch(`http://localhost:5000/api/reports/verify/${id}`, { method: "PUT" })
+  fetch(`https://exam-wsta.onrender.com/api/reports/verify/${id}`, { method: "PUT" })
     .then(() => fetchReports())
     .catch(() => alert("❌ Failed to verify."));
 }
@@ -101,7 +101,7 @@ function verifySelectedReports() {
 function deleteReport(id) {
   if (!confirm("Are you sure to delete this report?")) return;
 
-  fetch(`http://localhost:5000/api/reports/${id}`, { method: "DELETE" })
+  fetch(`https://exam-wsta.onrender.com/api/reports/${id}`, { method: "DELETE" })
     .then(() => fetchReports())
     .catch(() => alert("❌ Failed to delete."));
 }

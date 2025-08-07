@@ -2,7 +2,7 @@
 
 const container = document.getElementById("reportsContainer");
 
-fetch("http://localhost:5000/api/reports")
+fetch("https://exam-wsta.onrender.com/api/reports")
   .then((res) => res.json())
   .then((data) => {
     if (data.length === 0) {
@@ -32,7 +32,7 @@ fetch("http://localhost:5000/api/reports")
 
 function getMediaHTML(filename) {
   const ext = filename.split(".").pop().toLowerCase();
-  const url = `http://localhost:5000/uploads/${filename}`;
+  const url = `https://exam-wsta.onrender.com/uploads/${filename}`;
 
   if (["jpg", "jpeg", "png"].includes(ext)) {
     return `<img src="${url}" alt="Report media" />`;
