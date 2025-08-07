@@ -15,7 +15,7 @@ const getClientIP = require("../middleware/ipMiddleware");
 const rateLimiter = require("../middleware/rateLimiter");
 
 // Public: Submit report
-router.post("/report", rateLimiter, getClientIP, upload.single("media"), submitReport);
+router.post("/reports", rateLimiter, getClientIP, upload.single("media"), submitReport);
 
 // Public: Get all verified reports (trending feed)
 router.get("/verified", getVerifiedReports);
